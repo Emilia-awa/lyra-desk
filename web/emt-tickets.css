@@ -1,0 +1,373 @@
+/* 工单系统（魔改）— 右侧抽屉 + 竖排入口按钮
+ *
+ * 只用 Studio 自己的 CSS 变量（--bg-card / --text-primary / --border-color …），
+ * 不硬编码背景色，暗亮主题都跟着走。删掉 index.html 里的两行引用即完全恢复。
+ */
+
+/* ---------- 边缘竖排入口 ---------- */
+#ld-tickets-fab {
+  position: fixed;
+  right: 0;
+  top: 38%;
+  z-index: 800; /* 低于原生 modal / drawer（1000+），高于内容 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 36px;
+  padding: 12px 0;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1a1a1a);
+  font-size: 13px;
+  line-height: 1;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  letter-spacing: 2px;
+  cursor: pointer;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, .08);
+  transition: background .15s ease, transform .15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+#ld-tickets-fab:hover { background: var(--bg-card-hover, var(--bg-secondary, #f5f5f5)); }
+#ld-tickets-fab:active { transform: translateX(-1px); }
+#ld-tickets-fab .ld-badge {
+  writing-mode: horizontal-tb;
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background: var(--error, #c62828);
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+}
+#ld-tickets-fab[hidden] { display: none; }
+
+/* ---------- 抽屉 ---------- */
+#ld-tickets-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1500; /* 仍低于 Studio 原生弹窗 */
+  width: 420px;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1a1a1a);
+  border-left: 1px solid var(--border-color, #e0e0e0);
+  box-shadow: -8px 0 28px rgba(0, 0, 0, .16);
+  transform: translateX(100%);
+  transition: transform .22s ease;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+#ld-tickets-drawer.ld-open { transform: translateX(0); visibility: visible; }
+/* 关闭态彻底移出交互与绘制，同时避免 fixed 元素撑出横向滚动条 */
+#ld-tickets-drawer:not(.ld-open) {
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform .22s ease, visibility 0s linear .22s;
+}
+#ld-tickets-drawer, #ld-tickets-drawer * { box-sizing: border-box; }
+
+.ld-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  background: var(--bg-card, #fff);
+}
+.ld-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ld-icon-btn {
+  flex: 0 0 auto;
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary, #666);
+  font-size: 14px;
+  line-height: 1;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.ld-icon-btn:hover {
+  background: var(--bg-card-hover, var(--bg-secondary, #f5f5f5));
+  color: var(--text-primary, #1a1a1a);
+  border-color: var(--border-light, var(--border-color, #e0e0e0));
+}
+
+/* 分段开关 */
+.ld-seg {
+  display: inline-flex;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.ld-seg button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, #666);
+  font-size: 12px;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+.ld-seg button.ld-on {
+  background: var(--bg-secondary, #f0f0f0);
+  color: var(--text-primary, #1a1a1a);
+  font-weight: 600;
+}
+
+/* 列表 */
+.ld-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 10px 12px;
+}
+.ld-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text-muted, #999);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.ld-error {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(var(--error-rgb, 198, 40, 40), .1);
+  color: var(--error, #c62828);
+  font-size: 12px;
+}
+.ld-card {
+  width: 100%;
+  display: block;
+  text-align: left;
+  appearance: none;
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 10px;
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1a1a1a);
+  cursor: pointer;
+  font: inherit;
+}
+.ld-card:hover { background: var(--bg-card-hover, var(--bg-secondary, #f5f5f5)); }
+.ld-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.ld-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted, #999);
+}
+.ld-dot.ld-open { background: var(--warning, #f57f17); }
+.ld-dot.ld-answered { background: var(--success, #2e7d32); }
+.ld-dot.ld-closed { background: var(--text-muted, #999); }
+.ld-card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ld-card-time {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--text-muted, #999);
+}
+.ld-card-last {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary, #666);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+.ld-card-meta {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-muted, #999);
+}
+.ld-user-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 5px;
+  font-size: 10px;
+  color: var(--text-muted, #999);
+}
+
+/* 详情消息 */
+.ld-msg {
+  display: flex;
+  margin-bottom: 10px;
+}
+.ld-msg.ld-user { justify-content: flex-end; }
+.ld-msg.ld-assistant { justify-content: flex-start; }
+.ld-bubble {
+  max-width: 86%;
+  padding: 8px 11px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--bg-secondary, #f0f0f0);
+  color: var(--text-primary, #1a1a1a);
+}
+.ld-msg.ld-user .ld-bubble {
+  background: var(--accent-primary, #333);
+  color: var(--text-on-accent, #fff);
+  border-bottom-right-radius: 4px;
+}
+.ld-msg.ld-assistant .ld-bubble { border-bottom-left-radius: 4px; }
+.ld-msg.ld-pending .ld-bubble {
+  color: var(--text-muted, #999);
+  font-style: italic;
+}
+.ld-msg.ld-failed .ld-bubble {
+  background: rgba(var(--error-rgb, 198, 40, 40), .1);
+  color: var(--error, #c62828);
+}
+.ld-retry {
+  margin-top: 6px;
+  appearance: none;
+  border: 1px solid var(--border-color, #e0e0e0);
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #1a1a1a);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 输入区 */
+.ld-composer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border-color, #e0e0e0);
+  background: var(--bg-card, #fff);
+}
+.ld-composer textarea {
+  flex: 1 1 auto;
+  min-height: 38px;
+  max-height: 120px;
+  resize: none;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 9px;
+  background: var(--bg-input, var(--bg-card, #fff));
+  color: var(--text-primary, #1a1a1a);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.ld-composer textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary, #333);
+}
+.ld-composer textarea::placeholder { color: var(--input-placeholder-color, var(--text-muted, #999)); }
+.ld-send {
+  flex: 0 0 auto;
+  appearance: none;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 9px;
+  padding: 9px 13px;
+  background: var(--bg-secondary, #f0f0f0);
+  color: var(--text-primary, #1a1a1a);
+  font-size: 13px;
+  cursor: pointer;
+}
+.ld-send:disabled { opacity: .5; cursor: default; }
+
+/* 新建表单 */
+.ld-form { display: flex; flex-direction: column; gap: 10px; }
+.ld-form label { font-size: 12px; color: var(--text-secondary, #666); }
+.ld-form input, .ld-form textarea {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 9px;
+  background: var(--bg-input, var(--bg-card, #fff));
+  color: var(--text-primary, #1a1a1a);
+  font: inherit;
+  font-size: 13px;
+}
+.ld-form textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+.ld-form input:focus, .ld-form textarea:focus {
+  outline: none;
+  border-color: var(--accent-primary, #333);
+}
+.ld-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.ld-primary {
+  appearance: none;
+  border: 1px solid var(--accent-primary, #333);
+  border-radius: 9px;
+  padding: 8px 14px;
+  background: var(--accent-primary, #333);
+  color: var(--text-on-accent, #fff);
+  font-size: 13px;
+  cursor: pointer;
+}
+.ld-primary:disabled { opacity: .55; cursor: default; }
+.ld-ghost {
+  appearance: none;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 9px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--text-primary, #1a1a1a);
+  font-size: 13px;
+  cursor: pointer;
+}
+.ld-hint { font-size: 11px; color: var(--text-muted, #999); }
+.ld-spin { display: inline-block; animation: ld-spin 1s linear infinite; }
+@keyframes ld-spin { to { transform: rotate(360deg); } }
+
+/* 手机：全屏抽屉，dvh 兜住键盘与浏览器地址栏 */
+@media (max-width: 768px) {
+  #ld-tickets-drawer { width: 100vw; max-width: 100vw; }
+  #ld-tickets-fab { top: auto; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 420px) {
+  .ld-bubble { max-width: 92%; }
+}

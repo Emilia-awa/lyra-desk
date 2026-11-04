@@ -1,0 +1,13 @@
+# 机密与运行时产物，绝不进 git
+.env
+.env.*
+*.db
+*.db-shm
+*.db-wal
+data/
+logs/
+evidence/
+REPORT*.md
+.zcode-run.log
+node_modules/
+test-tmp/

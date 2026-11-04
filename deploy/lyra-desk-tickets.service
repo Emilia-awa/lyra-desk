@@ -1,0 +1,19 @@
+[Unit]
+Description=Lyra Studio built-in ticket API (lyra_desk T1)
+After=network-online.target ekko-studio.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/root/work/lyra_desk
+# 600, root-only. Holds the lyra-desk API_SERVER_KEY plus port/path overrides.
+EnvironmentFile=-/root/work/lyra_desk/.env
+Environment=PATH=/root/.hermes/tools/node-26.12.1-linux-x64/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/root/.hermes/tools/node-26.12.1-linux-x64/bin/node /root/work/lyra_desk/server/index.mjs
+Restart=always
+RestartSec=5
+StandardOutput=append:/root/work/lyra_desk/logs/service.log
+StandardError=append:/root/work/lyra_desk/logs/service.log
+
+[Install]
+WantedBy=multi-user.target
